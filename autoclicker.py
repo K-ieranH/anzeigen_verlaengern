@@ -2,6 +2,8 @@ import pyautogui
 import time
 import cv2
 import numpy as np
+import sys      
+import ctypes   
 
 # Referenzbilder laden
 new_mail = cv2.imread('pictures/new_mail.png', cv2.IMREAD_COLOR)
@@ -18,6 +20,12 @@ toleranz_mail_open = 0.9
 toleranz_verlaengert = 0.8
 toleranz_mailprogramm_start = 0.8
 toleranz_mail_loeschen = 0.9
+
+# Anzahl verlägerter Anzeigen speichern
+anzahl_verlaengert = 0
+
+# Zeitpunkt des letzten Klicks speichern
+letzter_klick = time.time()
 
 # Array mit allen Referenzbildern, Toleranz und ID und ob klick erlaubt ist
 referenzbilder = [
@@ -57,6 +65,7 @@ def find_picture(referenzbilder):
 # input: ID und Ort der oberen linken Ecke eines passenden Referenzbildes
 # return: None
 def click(id, location):
+    global anzahl_verlaengert
     if id == 'new_mail' and referenzbilder[0]['allowed']:
         referenzbilder[0]['allowed'] = False
         referenzbilder[1]['allowed'] = False
@@ -70,20 +79,26 @@ def click(id, location):
     elif id == 'mail_open' and referenzbilder[2]['allowed']:
         referenzbilder[2]['allowed'] = False 
         referenzbilder[3]['allowed'] = True
+        print('Mail geöffnet')
         click_on_screen(location[0] + 200, location[1] + 170)
     elif id == 'verlaengert' and referenzbilder[3]['allowed']:
         referenzbilder[3]['allowed'] = False
         referenzbilder[4]['allowed'] = True
         referenzbilder[5]['allowed'] = True
+        anzahl_verlaengert += 1
+        print('Anzeigen verlängert')
         click_on_screen(1900, 30)
     elif id == 'mailprogramm_start' and referenzbilder[5]['allowed']:
         referenzbilder[5]['allowed'] = False
+        print('Mailprogramm gestartet')
         click_on_screen(location[0] + 90, location[1] + 30)
     elif id == 'mail_loeschen' and referenzbilder[4]['allowed']:
         referenzbilder[4]['allowed'] = False
         referenzbilder[0]['allowed'] = True
         referenzbilder[1]['allowed'] = True
         click_on_screen(location[0] + 220, location[1] + 120)
+        time.sleep(0.5)
+        click_on_screen(10, 780)
 
 # Funktion zum Klicken
 # brief: Funktion klickt auf den Bildschirm
@@ -94,12 +109,37 @@ def click_on_screen(x, y, duration = 0.5):
     pyautogui.click()
     time.sleep(0.5)
 
+
+# Funktion zum Ende des Programms
+# brief: Funktion zeigt Meldung, dass keine weitere Übereinstimmung gefunden wurde, fragt ob programm beendet werden soll
+# input: None
+# return: None
+def end_program():
+    # Flags für OK und Abbrechen
+    MB_OKCANCEL = 0x00000001
+    IDOK = 1
+    IDCANCEL = 2
+
+    # Messagebox anzeigen
+    result = ctypes.windll.user32.MessageBoxW(0, f" Es wurden {anzahl_verlaengert} Anzeigen verlängert. Keine Übereinstimmung gefunden. Programm beenden?", "Programm beenden", MB_OKCANCEL)
+    #time.sleep(1)
+    if result == IDOK:
+        print('Programm beendet')
+        sys.exit()
+    else:
+        print('Programm läuft weiter')
+        return
+
 # Hauptfunktion
 # brief: Funktion startet den Ablauf
 # input: None
 # return: None
 def main():
     print('Autoclicker gestartet')
+    letzter_klick = time.time()
+    global anzahl_verlaengert
+    anzahl_verlaengert = 0
+    #anzahl_verlaengert += 1
     time.sleep(2)
     while True:
         # Bildvergleich
@@ -108,6 +148,12 @@ def main():
         # Wenn Übereinstimmung gefunden, klicken
         if not result == None:
             click(result[0], result[1])
+            # Zeitpunkt des letzten Klicks speichern
+            letzter_klick = time.time()
+        elif result == None and (time.time() - letzter_klick) > 10: 
+            # Wenn kein Bild gefunden, zeige statusmeldung und frage ob programm beendet werden soll
+            end_program()
+            letzter_klick = time.time()
         time.sleep(1)
 
 if __name__ == "__main__":
