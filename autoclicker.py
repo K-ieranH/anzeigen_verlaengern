@@ -10,6 +10,7 @@ new_mail = cv2.imread('pictures/new_mail.png', cv2.IMREAD_COLOR)
 new_mail_read = cv2.imread('pictures/new_mail_read.png', cv2.IMREAD_COLOR)
 mail_open = cv2.imread('pictures/mail_open.png', cv2.IMREAD_COLOR)
 verlaengert = cv2.imread('pictures/verlaengert.png', cv2.IMREAD_COLOR)
+verlaengert2 = cv2.imread('pictures/verlaengert2.png', cv2.IMREAD_COLOR)
 mailprogramm_start = cv2.imread('pictures/mailprogramm_start.png', cv2.IMREAD_COLOR)
 mail_loeschen = cv2.imread('pictures/mail__loeschen.png', cv2.IMREAD_COLOR)
 
@@ -18,6 +19,7 @@ toleranz_new_mail = 0.9
 toleranz_new_mail_read = 0.9
 toleranz_mail_open = 0.9
 toleranz_verlaengert = 0.8
+toleranz_verlaengert2 = 0.8
 toleranz_mailprogramm_start = 0.8
 toleranz_mail_loeschen = 0.9
 
@@ -33,6 +35,7 @@ referenzbilder = [
     {'id': 'new_mail_read', 'bild': new_mail_read, 'toleranz': toleranz_new_mail_read, 'allowed': True},
     {'id': 'mail_open', 'bild': mail_open, 'toleranz': toleranz_mail_open, 'allowed': False},
     {'id': 'verlaengert', 'bild': verlaengert, 'toleranz': toleranz_verlaengert, 'allowed': False},
+    {'id': 'verlaengert', 'bild': verlaengert2, 'toleranz': toleranz_verlaengert2, 'allowed': False},
     {'id': 'mail_loeschen', 'bild': mail_loeschen, 'toleranz': toleranz_mail_loeschen, 'allowed': False}, #Reihenfolge, damit mail gelöscht wird, auch wenn start-leiste schon draußen
     {'id': 'mailprogramm_start', 'bild': mailprogramm_start, 'toleranz': toleranz_mailprogramm_start, 'allowed': False}
 
@@ -79,21 +82,23 @@ def click(id, location):
     elif id == 'mail_open' and referenzbilder[2]['allowed']:
         referenzbilder[2]['allowed'] = False 
         referenzbilder[3]['allowed'] = True
+        referenzbilder[4]['allowed'] = True
         print('Mail geöffnet')
         click_on_screen(location[0] + 200, location[1] + 170)
-    elif id == 'verlaengert' and referenzbilder[3]['allowed']:
+    elif (id == 'verlaengert' and referenzbilder[3]['allowed']) or (id == 'verlaengert2' and referenzbilder[4]['allowed']):
         referenzbilder[3]['allowed'] = False
-        referenzbilder[4]['allowed'] = True
+        referenzbilder[4]['allowed'] = False
         referenzbilder[5]['allowed'] = True
+        referenzbilder[6]['allowed'] = True
         anzahl_verlaengert += 1
         print('Anzeigen verlängert')
         click_on_screen(1900, 30)
-    elif id == 'mailprogramm_start' and referenzbilder[5]['allowed']:
-        referenzbilder[5]['allowed'] = False
+    elif id == 'mailprogramm_start' and referenzbilder[6]['allowed']:
+        referenzbilder[6]['allowed'] = False
         print('Mailprogramm gestartet')
         click_on_screen(location[0] + 90, location[1] + 30)
-    elif id == 'mail_loeschen' and referenzbilder[4]['allowed']:
-        referenzbilder[4]['allowed'] = False
+    elif id == 'mail_loeschen' and referenzbilder[5]['allowed']:
+        referenzbilder[5]['allowed'] = False
         referenzbilder[0]['allowed'] = True
         referenzbilder[1]['allowed'] = True
         click_on_screen(location[0] + 220, location[1] + 120)
