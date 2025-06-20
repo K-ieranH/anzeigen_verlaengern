@@ -11,6 +11,8 @@ new_mail_read = cv2.imread('pictures/new_mail_read.png', cv2.IMREAD_COLOR)
 mail_open = cv2.imread('pictures/mail_open.png', cv2.IMREAD_COLOR)
 verlaengert = cv2.imread('pictures/verlaengert.png', cv2.IMREAD_COLOR)
 verlaengert2 = cv2.imread('pictures/verlaengert2.png', cv2.IMREAD_COLOR)
+verlaengert3 = cv2.imread('pictures/verlaengert3.png', cv2.IMREAD_COLOR)
+verlaengert4 = cv2.imread('pictures/verlaengert4.png', cv2.IMREAD_COLOR)
 mailprogramm_start = cv2.imread('pictures/mailprogramm_start.png', cv2.IMREAD_COLOR)
 mail_loeschen = cv2.imread('pictures/mail__loeschen.png', cv2.IMREAD_COLOR)
 
@@ -20,6 +22,8 @@ toleranz_new_mail_read = 0.9
 toleranz_mail_open = 0.9
 toleranz_verlaengert = 0.8
 toleranz_verlaengert2 = 0.8
+toleranz_verlaengert3 = 0.8
+toleranz_verlaengert4 = 0.8
 toleranz_mailprogramm_start = 0.8
 toleranz_mail_loeschen = 0.9
 
@@ -36,6 +40,8 @@ referenzbilder = [
     {'id': 'mail_open', 'bild': mail_open, 'toleranz': toleranz_mail_open, 'allowed': False},
     {'id': 'verlaengert', 'bild': verlaengert, 'toleranz': toleranz_verlaengert, 'allowed': False},
     {'id': 'verlaengert', 'bild': verlaengert2, 'toleranz': toleranz_verlaengert2, 'allowed': False},
+    {'id': 'verlaengert', 'bild': verlaengert3, 'toleranz': toleranz_verlaengert3, 'allowed': False},
+    {'id': 'verlaengert', 'bild': verlaengert4, 'toleranz': toleranz_verlaengert4, 'allowed': False},
     {'id': 'mail_loeschen', 'bild': mail_loeschen, 'toleranz': toleranz_mail_loeschen, 'allowed': False}, #Reihenfolge, damit mail gelöscht wird, auch wenn start-leiste schon draußen
     {'id': 'mailprogramm_start', 'bild': mailprogramm_start, 'toleranz': toleranz_mailprogramm_start, 'allowed': False}
 
@@ -48,6 +54,7 @@ referenzbilder = [
 # output: ID und Ort der oberen linken Ecke eines passenden Referenzbildes  (vom ersten passenden)
 def find_picture(referenzbilder):
     # Screenshot erstellen
+    print('Screenshot wird erstellt...')
     screenshot = pyautogui.screenshot()
     screenshot = cv2.cvtColor(np.array(screenshot), cv2.COLOR_RGB2BGR)
     
@@ -83,22 +90,26 @@ def click(id, location):
         referenzbilder[2]['allowed'] = False 
         referenzbilder[3]['allowed'] = True
         referenzbilder[4]['allowed'] = True
-        print('Mail geöffnet')
-        click_on_screen(location[0] + 200, location[1] + 170)
-    elif (id == 'verlaengert' and referenzbilder[3]['allowed']) or (id == 'verlaengert2' and referenzbilder[4]['allowed']):
-        referenzbilder[3]['allowed'] = False
-        referenzbilder[4]['allowed'] = False
         referenzbilder[5]['allowed'] = True
         referenzbilder[6]['allowed'] = True
+        print('Mail geöffnet')
+        click_on_screen(location[0] + 200, location[1] + 170)
+    elif (id == 'verlaengert' and referenzbilder[3]['allowed']) or (id == 'verlaengert2' and referenzbilder[4]['allowed']) or (id == 'verlaengert3' and referenzbilder[5]['allowed']) or (id == 'verlaengert4' and referenzbilder[6]['allowed']):
+        referenzbilder[3]['allowed'] = False
+        referenzbilder[4]['allowed'] = False
+        referenzbilder[5]['allowed'] = False
+        referenzbilder[6]['allowed'] = False
+        referenzbilder[7]['allowed'] = True
+        referenzbilder[8]['allowed'] = True
         anzahl_verlaengert += 1
         print('Anzeigen verlängert')
         click_on_screen(1900, 30)
-    elif id == 'mailprogramm_start' and referenzbilder[6]['allowed']:
-        referenzbilder[6]['allowed'] = False
+    elif id == 'mailprogramm_start' and referenzbilder[7]['allowed']:
+        referenzbilder[8]['allowed'] = False
         print('Mailprogramm gestartet')
         click_on_screen(location[0] + 90, location[1] + 30)
-    elif id == 'mail_loeschen' and referenzbilder[5]['allowed']:
-        referenzbilder[5]['allowed'] = False
+    elif id == 'mail_loeschen' and referenzbilder[7]['allowed']:
+        referenzbilder[7]['allowed'] = False
         referenzbilder[0]['allowed'] = True
         referenzbilder[1]['allowed'] = True
         click_on_screen(location[0] + 220, location[1] + 120)
@@ -122,6 +133,7 @@ def click_on_screen(x, y, duration = 0.5):
 def end_program():
     # Flags für OK und Abbrechen
     MB_OKCANCEL = 0x00000001
+    MB_SYSTEMMODAL = 0x00001000  # Fenster bleibt im Vordergrund über allen Fenstern
     IDOK = 1
     IDCANCEL = 2
 
@@ -155,7 +167,7 @@ def main():
             click(result[0], result[1])
             # Zeitpunkt des letzten Klicks speichern
             letzter_klick = time.time()
-        elif result == None and (time.time() - letzter_klick) > 10: 
+        elif result == None and (time.time() - letzter_klick) > 15: 
             # Wenn kein Bild gefunden, zeige statusmeldung und frage ob programm beendet werden soll
             end_program()
             letzter_klick = time.time()
